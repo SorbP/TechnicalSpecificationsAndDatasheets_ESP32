@@ -1,53 +1,78 @@
-# Technical Specifications & Datasheets — ESP32 Project
+# Technical Specifications & Datasheets — ESP32 Autogrow Project
 
-Förvar för tekniska datablad, pinout-diagram och specifikationer kopplade till Stefan Perssons ESP32-baserade autogrow/sensorsystem.
+Teknisk referens för Stefan's ESP32-baserade autogrow/sensorsystem.  
+Innehåller extraherad kunskap från alla datablad och manualer — optimerad för minimal token-åtgång vid recall.
 
-## Projektöversikt
+## Snabbstart — Hur man använder det här repot
 
-Systemet bygger på ESP32-mikrokontrollers för mätning och styrning i ett automatiserat odlingssystem (autogrow). Arkitekturen inkluderar:
-
-- **ESP32-enheter** som kommunicerar via **ESP-NOW** (direkt chip-till-chip, utan router, 50–200m räckvidd)
-- **DS18B20**-temperatursensorer på långa kablar (upp till ~100m)
-- **Freenove ESP32 Wrover/WROOM breakout board** som huvudplattform
-- Strömförsörjning via 3,3V, stabiliserad med bypass-kondensatorer (100µF + 100nF)
-
-## Mappar
+**I en ny Claude-session:** Ladda `notes/00_INDEX.md` för att se vad som finns, ladda sedan bara de filer som är relevanta för din fråga.
 
 ```
-datasheets/     — Original PDF-datablad för alla komponenter
-pinouts/        — Pinout-diagram och kortbeskrivningar
-notes/          — Tekniska anteckningar, beräkningar, sammanfattningar
+Ladda index:     notes/00_INDEX.md
+Kraftsystem:     notes/02_power_system.md
+GPIO-tabell:     notes/03_gpio_table.md
+Sensor/aktuator: notes/05_autogrow_guide.md
+Varningar:       notes/06_gotchas.md
 ```
 
-## Komponenter i projektet
+## Systembeskrivning
 
-| Komponent | Typ | Anteckningar |
-|-----------|-----|--------------|
-| ESP32-WROVER/WROOM | Mikrokontroller | WiFi + BT, 3,3V, 2,3–3,6V tolerans |
-| Freenove Breakout Board | Breakout | Se `datasheets/` för PDF |
-| DS18B20 | Temperatursensor | 1-Wire, klarar ~100m kabel |
-| 100µF 16V radiell (Electrokit 41017679) | Kondensator | Buffrar WiFi-strömtoppar |
-| 100nF keramisk (X7R föredras) | Kondensator | HF-avkoppling nära chip |
+| Komponent | Roll |
+|-----------|------|
+| Freenove Breakout Board (CB9101 V1.5) | Hub — 7–12V DC → 5V/3A → 3.3V → ESP32 + GPIO screw terminals |
+| ESP32-WROVER-B | Huvudchip på hub — WiFi, ESP-NOW, dual-core 240MHz, 8MB PSRAM |
+| ESP32-WROOM-32E | Alternativt chip (ingen PSRAM, fler GPIOs: 16/17 tillgängliga) |
+| Fjärrnoder (ESP32) | Skickar sensordata via ESP-NOW utan router, 50–200m räckvidd |
+| DS18B20 | Temperatursensorer, 1-Wire, upp till ~100m kabel |
+| Kapacitiv jordfuktighetssensor | ADC1 analog (GPIO32–39, WiFi-säker) |
+| BME280 / SHT31 | Temperatur + luftfuktighet, I2C (GPIO21/22) |
+| MOSFET/relä (externt) | Pumpar, ventiler, lampor — styrs från GPIO screw terminals |
 
-## Tekniska lärdomar (sammanfattning)
+## Kritiska fakta (TL;DR)
 
-- **Spänningsfall**: Sikta på max 100–200mV kabellfall för mikroelektronik. ESP32 tolererar 2,3–3,6V → totalt 1V budget.
-- **Stabilisering**: 100µF elektrolyt + 100nF keramisk parallellt mellan 3,3V och GND, monterade nära chipet.
-- **Långa kablar**: DS18B20 klarar ~100m. Pull-up-motstånd (4,7kΩ) krävs på data-linjen.
-- **ESP-NOW**: Kommunikation utan AP, låg latens, bra för sensornoder långt från routern.
+- **3.3V-rälsen är begränsad till 0.5A totalt.** ESP32 tar upp till 379mA vid ESP-NOW TX. Mata sensorer från separat 3.3V-regulator kopplad till 5V-rälsen.
+- **ADC2 fungerar inte under ESP-NOW.** Använd ADC1 (GPIO32–39) för alla analoga sensorer.
+- **GPIO6–11 och GPIO16–17 (WROVER-B) får aldrig användas.** Flash- respektive PSRAM-korruption.
+- **GPIO12 får inte ha extern pull-up på WROVER-B.** HIGH vid boot sätter flash-spänning till 1.8V och förstör chipet.
+- **DS18B20 kräver extern 4.7kΩ pull-up.** Intern pull-up (~45kΩ) är för svag för 1-Wire.
+- **I2C kräver externa 4.7kΩ pull-ups** på SDA och SCL — kortet har inga.
 
-## Användning med Claude Code
+## Mappstruktur
 
-Det här repot är länkat som teknisk referens i Claude-sessionerna för autogrow-projektet. När datablad läggs till här uppdateras `notes/` med en sammanfattning av vad som är relevant för projektet.
+```
+notes/
+  00_INDEX.md          Index — ladda det här först
+  01_board_overview.md Kortet, ICs, LED-beteende
+  02_power_system.md   Spänningsrälsar, strömbudget, rekommenderad arkitektur
+  03_gpio_table.md     Tillgängliga GPIOs, begränsningar, rekommenderade pin-tilldelningar
+  04_esp32_specs.md    Chip-specs, WiFi/ESP-NOW strömförbrukning, elektriska gränser
+  05_autogrow_guide.md Sensorinkoppling, aktuatorer, ESP-NOW-arkitektur
+  06_gotchas.md        Strapping-pins, destruktiva misstag, vanliga fallgropar
 
-### Lägg till ett datablad
+pinouts/
+  CB9101_Board.png         Freenove breakout board
+  ESP32_WROOM_Pinout.png   WROOM-32E pinout
+  ESP32_Wrover_Pinout.png  WROVER-B pinout
+  ESP32S3_Pinout.png       S3 pinout
 
-1. Lägg PDF i `datasheets/`
-2. Kör: `git add . && git commit -m "Add datasheet: <komponentnamn>" && git push`
+datasheets/              Original PDF-datablad (lokal kopia, ej pushade)
+```
 
-Eller mata Claude med filen — sammanfattning skrivs automatiskt till `notes/`.
+## Vad Claude kan hjälpa med (baserat på den här hårdvaran)
+
+1. ESP32 Arduino/ESP-IDF firmware — sensor-läsning, ESP-NOW hub/nod-kod, PWM, pulsmätning
+2. DS18B20 1-Wire setup — DallasTemperature-bibliotek, flera sensorer på en buss, CRC-felhantering
+3. ADC-kalibrering — ESP32 ADC är icke-linjär; kurvanpassning för jordfuktighetssensorer
+4. Strömbudget — dimensionera extern PSU, sensorrägulator, batteritid för fjärrnoder
+5. ESP-NOW-protokoll — pairing, unicast/broadcast, datastrukturer, felhantering
+6. MOSFET-val — logic-level gate vid 3.3V, återledningsdiod för induktiva laster
+7. Kretskortsdesign — koppling, avkopplingsplacering, ledningsdimensionering
+8. Doseringslogik — EC/pH återkopplingsslingor, tidstyrda pumpimpulser
+9. Dataloggning — LittleFS, SD-kort via SPI, MQTT-fallback via WiFi
+10. Djupsömn och batteridrift — wakekällor, ULP-processor för ADC-sampling i sömn
 
 ## Repo
 
 - GitHub: https://github.com/SorbP/TechnicalSpecificationsAndDatasheets_ESP32
-- Ägare: SorbP (Stefan Persson)
+- Ägare: SorbP
+- Original datablad: `~/OneDrive/Backups/ESP32/Freenove_Breakout_Board_for_ESP32-main/`
