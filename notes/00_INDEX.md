@@ -13,7 +13,7 @@ Load this file first. Each entry = one topic. Load only what you need.
 
 ## Project Summary (one paragraph)
 
-Stefan builds an automated growing system (autogrow) using ESP32 microcontrollers.  
+SorbP builds an automated growing system (autogrow) using ESP32 microcontrollers.  
 A **Freenove Breakout Board (CB9101 V1.5)** serves as the hub: it accepts a 7–12V DC supply, steps it down to 5V/3A (XL1583) and then 3.3V/0.5A (AMS1117), and breaks out all ESP32 GPIOs to screw terminals.  
 Remote sensor nodes communicate via **ESP-NOW** (no router, 50–200m range, 802.11b radio).  
 Sensors include **DS18B20** on long cables (1-Wire, needs 4.7kΩ pull-up).  

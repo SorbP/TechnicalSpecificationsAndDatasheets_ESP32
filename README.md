@@ -1,6 +1,6 @@
 # Technical Specifications & Datasheets — ESP32 Autogrow Project
 
-Teknisk referens för Stefan's ESP32-baserade autogrow/sensorsystem.  
+Teknisk referens för SorbP's ESP32-baserade autogrow/sensorsystem.  
 Innehåller extraherad kunskap från alla datablad och manualer — optimerad för minimal token-åtgång vid recall.
 
 ## Snabbstart — Hur man använder det här repot
