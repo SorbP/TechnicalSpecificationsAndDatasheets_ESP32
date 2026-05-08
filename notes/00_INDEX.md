@@ -19,6 +19,8 @@ Load this file first. Each entry = one topic. Load only what you need.
 | [13_screen_24inch.md](13_screen_24inch.md) | Waveshare 2.4" LCD ILI9341 (SPI) |
 | [14_screen_35inch_touch.md](14_screen_35inch_touch.md) | Waveshare 3.5" capacitive touch LCD ST7796S+FT6336U (SPI+I2C) |
 | [15_pin_allocation.md](15_pin_allocation.md) | **Complete pin allocation table** — all components assigned, I2C conflicts, power budget |
+| [16_solutions.md](16_solutions.md) | Lösningar: flow sensor level shift, I2C 0x38-konflikt, EC/pH ADC-noggrannhet |
+| [17_shopping_list.md](17_shopping_list.md) | **Inköpslista** — alla komponenter med Electrokit art.nr, antal, syfte, totalkostnad |
 
 ## Project Summary (one paragraph)
 
